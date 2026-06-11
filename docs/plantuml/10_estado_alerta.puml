@@ -1,0 +1,18 @@
+@startuml
+title G-Agro — Ciclo de Vida do PlantioSafra
+
+skinparam StateBackgroundColor #FFFFFF
+skinparam StateBorderColor #2C3E50
+skinparam ArrowColor #2980B9
+
+[*] --> PLANEJADA : Cadastro da Safra (Aguardando início)
+
+PLANEJADA --> EM_ANDAMENTO : Registro do Plantio (Iniciar Safra)
+PLANEJADA --> CANCELADA : Decisão do Produtor
+
+EM_ANDAMENTO --> COLHIDA : Registro da Colheita (Quantidade Real)
+EM_ANDAMENTO --> CANCELADA : Perda Total / Decisão do Produtor
+
+COLHIDA --> [*]
+CANCELADA --> [*]
+@enduml

@@ -1,0 +1,186 @@
+@startuml 02_diagrama_classes
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName Arial
+skinparam defaultFontSize 11
+skinparam classBackgroundColor #DAE8FC
+skinparam classBorderColor #6C8EBF
+skinparam classHeaderBackgroundColor #6C8EBF
+skinparam classFontColor #FFFFFF
+skinparam classAttributeFontColor #1A1A1A
+skinparam classStereotypeFontColor #FFFFCC
+skinparam ArrowColor #8B0000
+skinparam ArrowThickness 1.5
+skinparam roundCorner 4
+skinparam linetype ortho
+
+title G-Agro — Diagrama de Classes do Domínio
+
+enum Papel {
+  PRODUTOR
+  AGRONOMO
+  ADMIN
+}
+
+enum StatusTalhao {
+  PREPARANDO
+  PLANTADO
+  CRESCIMENTO
+  COLHIDO
+  REPOUSO
+}
+
+enum TipoInsumo {
+  FERTILIZANTE
+  DEFENSIVO
+  SEMENTE
+  COMBUSTIVEL
+  OUTROS
+}
+
+enum StatusSafra {
+  PLANEJADA
+  EM_ANDAMENTO
+  COLHIDA
+  CANCELADA
+}
+
+class Usuario {
+  - id : Long
+  - nome : String
+  - email : String
+  - senhaHash : String
+  - telefone : String
+  - papel : Papel
+  - ativo : boolean
+  --
+  + autenticar(senha: String): boolean
+  + alterarSenha(nova: String): void
+}
+
+class Fazenda {
+  - id : Long
+  - nome : String
+  - localizacao : String
+  - areaTotal : Double
+  - latitude : Double
+  - longitude : Double
+  - documentacaoCAR : String
+  --
+  + calcularAreaUtil(): Double
+  + obterClima(): DadosClima
+}
+
+class Talhao {
+  - id : Long
+  - nome : String
+  - areaHa : Double
+  - tipoSolo : String
+  - status : StatusTalhao
+  --
+  + calcularProducaoEstimada(): Double
+  + adicionarMonitoramento(): void
+}
+
+class Cultura {
+  - id : Long
+  - nome : String
+  - variedade : String
+  - cicloMedioDias : Integer
+  - tempIdealMin : Double
+  - tempIdealMax : Double
+  - pluviosidadeIdeal : Double
+  --
+  + obterCalendario(): List<Etapa>
+  + calcularCustoEstimado(): BigDecimal
+}
+
+class PlantioSafra {
+  - id : Long
+  - dataPlantio : LocalDate
+  - dataColheitaPrevista : LocalDate
+  - dataColheitaReal : LocalDate
+  - qtdSemeadaKg : Double
+  - qtdColhidaKg : Double
+  - status : StatusSafra
+  - observacoes : String
+  --
+  + calcularProdutividade(): Double
+  + registrarColheita(qtd: Double): void
+}
+
+class MonitoramentoSolo {
+  - id : Long
+  - dataAnalise : LocalDate
+  - ph : Double
+  - nitrogenioPpm : Double
+  - fosforoPpm : Double
+  - potassioPpm : Double
+  - materiaOrganicaPct : Double
+  --
+  + gerarLaudo(): Relatorio
+  + recomendarCorretivos(): List<String>
+}
+
+class Insumo {
+  - id : Long
+  - nome : String
+  - tipo : TipoInsumo
+  - unidadeMedida : String
+  - estoqueAtual : Double
+  - estoqueMinimo : Double
+  - precoUnitario : BigDecimal
+  --
+  + verificarEstoque(): Boolean
+  + darBaixa(qtd: Double): void
+}
+
+class AplicacaoInsumo {
+  - id : Long
+  - dataAplicacao : LocalDate
+  - quantidade : Double
+  - metodoAplicacao : String
+  - responsavel : String
+  --
+  + registrarAplicacao(): void
+}
+
+class AlertaClima {
+  - id : Long
+  - tipo : String
+  - descricao : String
+  - dataHora : LocalDateTime
+  - grauRisco : String
+  - notificado : Boolean
+  --
+  + enviarNotificacao(): void
+  + marcarComoLido(): void
+}
+
+class Relatorio {
+  - id : Long
+  - titulo : String
+  - tipo : String
+  - dataGeracao : LocalDateTime
+  - conteudo : String
+  - formato : String
+  --
+  + exportarPDF(): byte[]
+  + exportarCSV(): byte[]
+}
+
+Usuario "1" --> "1..*" Fazenda : possui
+Fazenda "1" --> "1..*" Talhao : contém
+Talhao "1" --> "0..*" PlantioSafra : recebe
+PlantioSafra "0..*" --> "1" Cultura : utiliza
+Talhao "1" --> "0..*" MonitoramentoSolo : analisado por
+PlantioSafra "1" --> "0..*" AplicacaoInsumo : registra
+AplicacaoInsumo "0..*" --> "1" Insumo : consome
+Fazenda "1" --> "0..*" AlertaClima : recebe
+Usuario "1" --> "0..*" Relatorio : gera
+Fazenda "1" --> "0..*" Insumo : estoca
+Usuario ..> Papel
+Talhao ..> StatusTalhao
+Insumo ..> TipoInsumo
+PlantioSafra ..> StatusSafra
+
+@enduml

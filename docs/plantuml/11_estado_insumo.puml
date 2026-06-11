@@ -1,0 +1,12 @@
+@startuml
+title G-Agro — Ciclo de Vida do AlertaClima
+
+skinparam StateBackgroundColor #FFFFFF
+skinparam StateBorderColor #2C3E50
+skinparam ArrowColor #E67E22
+
+[*] --> GERADO : Criado pelo ClimaService (Risco Detectado)
+GERADO --> NOTIFICADO : E-mail / Push enviado via SendGrid
+NOTIFICADO --> LIDO : Usuário marca como lido no painel
+LIDO --> [*]
+@enduml

@@ -1,0 +1,98 @@
+@startuml 06_casos_de_uso
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName Arial
+skinparam defaultFontSize 11
+skinparam usecaseBackgroundColor #DAE8FC
+skinparam usecaseBorderColor #6C8EBF
+skinparam usecaseFontColor #1A1A1A
+skinparam actorBackgroundColor #FFFFFF
+skinparam actorBorderColor #1A1A1A
+skinparam actorFontColor #1A1A1A
+skinparam actorFontStyle bold
+skinparam rectangleBackgroundColor #F8F8F8
+skinparam rectangleBorderColor #6C8EBF
+skinparam rectangleFontColor #1A1A1A
+skinparam ArrowColor #8B0000
+skinparam ArrowThickness 1.2
+
+title G-Agro — Casos de Uso do Sistema de Gestão Agrícola
+
+left to right direction
+
+actor "Produtor\nRural" as PROD
+actor "Técnico\nAgrônomo" as AGRO
+actor "Administrador" as ADMIN
+actor "API INMET\n(Clima)" as INMET <<external>>
+actor "SendGrid\n(E-mail)" as SG <<external>>
+
+rectangle "G-Agro — Sistema de Gestão Agrícola" {
+
+  usecase "Autenticar-se (Login)" as UC01
+  usecase "Recuperar senha" as UC02
+  usecase "Gerenciar perfil" as UC03
+
+  usecase "Cadastrar fazenda" as UC04
+  usecase "Gerenciar talhões" as UC05
+  usecase "Visualizar mapa interativo" as UC06
+
+  usecase "Registrar plantio / safra" as UC07
+  usecase "Monitorar desenvolvimento" as UC08
+  usecase "Registrar colheita" as UC09
+
+  usecase "Analisar solo (laudos)" as UC10
+  usecase "Consultar previsão do tempo" as UC11
+  usecase "Receber alertas climáticos" as UC12
+
+  usecase "Controlar estoque de insumos" as UC13
+  usecase "Registrar aplicação de insumos" as UC14
+  usecase "Gerar alerta estoque baixo" as UC15
+
+  usecase "Visualizar dashboard" as UC16
+  usecase "Gerar relatórios (PDF/CSV)" as UC17
+  usecase "Exportar dados" as UC18
+
+  usecase "Gerenciar usuários" as UC19
+  usecase "Configurar sistema" as UC20
+  usecase "Auditar logs" as UC21
+}
+
+PROD --> UC01
+PROD --> UC02
+PROD --> UC03
+PROD --> UC04
+PROD --> UC05
+PROD --> UC06
+PROD --> UC07
+PROD --> UC08
+PROD --> UC09
+PROD --> UC13
+PROD --> UC14
+PROD --> UC16
+PROD --> UC17
+
+AGRO --> UC01
+AGRO --> UC03
+AGRO --> UC06
+AGRO --> UC08
+AGRO --> UC10
+AGRO --> UC11
+AGRO --> UC16
+AGRO --> UC17
+AGRO --> UC18
+
+ADMIN --> UC01
+ADMIN --> UC19
+ADMIN --> UC20
+ADMIN --> UC21
+
+INMET --> UC11 : <<provê dados>>
+INMET --> UC12 : <<dispara>>
+SG --> UC12 : <<envia e-mail>>
+SG --> UC15 : <<envia e-mail>>
+
+UC07 ..> UC13 : <<include>>
+UC14 ..> UC13 : <<include>>
+UC15 ..> UC12 : <<extend>>
+UC17 ..> UC18 : <<extend>>
+
+@enduml

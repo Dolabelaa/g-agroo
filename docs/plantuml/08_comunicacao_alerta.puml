@@ -1,0 +1,27 @@
+@startuml
+title G-Agro — Diagrama de Comunicação (UC-07 Registro de Safra)
+
+skinparam ObjectBackgroundColor #FFFFFF
+skinparam ObjectBorderColor #2C3E50
+skinparam ArrowColor #16A085
+skinparam AttributeFontColor #2C3E50
+
+object "<u>:Produtor</u>" as actor
+object "<u>:FrontEndReact</u>" as front
+object "<u>safraController:SafraController</u>" as ctrl
+object "<u>safraService:SafraService</u>" as svc
+object "<u>insumoService:InsumoService</u>" as insSvc
+object "<u>insumoRepository:InsumoRepository</u>" as insRepo
+object "<u>safraRepository:SafraRepository</u>" as safraRepo
+object "<u>notificacaoService:NotificacaoService</u>" as notifSvc
+object "<u>:SendGridAPI</u>" as sendgrid
+
+actor -> front : 1: preencheDadosPlantio()
+front -> ctrl : 2: POST /api/v1/safras
+ctrl -> svc : 3: registrarPlantio(dados)
+svc -> insSvc : 4: validarEstoqueInsumos(itens)
+insSvc -> insRepo : 5: SELECT estoque FROM insumo
+svc -> safraRepo : 6: INSERT plantio_safra (status=EM_ANDAMENTO)
+svc -> notifSvc : 7: notificarProdutor(safra)
+notifSvc -> sendgrid : 8: enviarEmail()
+@enduml

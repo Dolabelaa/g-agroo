@@ -1,0 +1,64 @@
+@startuml 05_sequencia_safra
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName Arial
+skinparam defaultFontSize 11
+skinparam sequenceArrowThickness 1.5
+skinparam sequenceArrowColor #8B0000
+skinparam sequenceLifeLineBorderColor #6C8EBF
+skinparam sequenceLifeLineBackgroundColor #DAE8FC
+skinparam sequenceParticipantBackgroundColor #DAE8FC
+skinparam sequenceParticipantBorderColor #6C8EBF
+skinparam sequenceParticipantFontColor #1A1A1A
+skinparam sequenceGroupBorderColor #1A1A1A
+skinparam sequenceGroupBackgroundColor #F8F8F8
+skinparam sequenceGroupFontColor #1A1A1A
+skinparam noteBorderColor #6C8EBF
+skinparam noteBackgroundColor #EEF4FF
+skinparam actorBackgroundColor #FFFFFF
+skinparam actorBorderColor #1A1A1A
+
+title G-Agro — Registro de Safra e Disparo de Alerta Climático
+
+actor "Produtor" as PROD
+participant "Front-end" as FE
+participant "SafraController" as SC
+participant "SafraService" as SS
+participant "InsumoService" as IS
+participant "SafraRepository" as SR
+participant "NotificacaoService" as NS
+participant "ClimaService\n(INMET API)" as CLI
+database "PostgreSQL" as DB
+
+PROD -> FE : preenche dados do plantio
+FE -> SC : POST /api/v1/safras\n{ talhaoId, culturaId, dataPlantio, itens }
+SC -> SS : registrarPlantio(dados)
+SS -> IS : validarEstoqueInsumos(itens)
+IS -> DB : SELECT estoque FROM insumo
+DB --> IS : estoque atual
+IS --> SS : estoque OK
+
+SS -> SS : calcularDataColheitaPrevista()
+SS -> SR : save(plantioSafra)
+SR -> DB : INSERT plantio_safra\n(status=EM_ANDAMENTO)
+DB --> SR : safra persistida
+SR --> SS : PlantioSafra
+SS -> NS : notificarProdutor(safra)
+NS --> PROD : e-mail "Safra registrada com sucesso"
+SS --> SC : SafraDTO
+SC --> FE : 201 Created
+
+== Verificação de Alerta Climático (job agendado) ==
+
+CLI -> CLI : agendamento diário (cron)
+CLI -> DB : SELECT fazendas ativas com safra\nEM_ANDAMENTO
+DB --> CLI : lista de fazendas
+CLI -> CLI : GET api.inmet.gov.br\n/previsao/{latitude}/{longitude}
+CLI --> CLI : dados meteorológicos
+
+alt [Risco detectado: geada / seca / excesso chuva]
+  CLI -> DB : INSERT alerta_clima\n(grau_risco=ALTO)
+  CLI -> NS : enviarAlerta(fazenda, risco)
+  NS --> PROD : push + e-mail "⚠ Alerta climático"
+end
+
+@enduml

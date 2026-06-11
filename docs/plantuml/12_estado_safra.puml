@@ -1,0 +1,18 @@
+@startuml
+title G-Agro — Ciclo de Vida do Insumo
+
+skinparam StateBackgroundColor #FFFFFF
+skinparam StateBorderColor #2C3E50
+skinparam ArrowColor #27AE60
+
+[*] --> DISPONIVEL : Entrada de Estoque (Estoque > Mínimo)
+
+DISPONIVEL --> ESTOQUE_BAIXO : Consumo (Estoque <= Estoque Mínimo)
+DISPONIVEL --> ESGOTADO : Consumo Integral (Estoque == 0)
+
+ESTOQUE_BAIXO --> DISPONIVEL : Reabastecimento (Compra/Entrada)
+ESTOQUE_BAIXO --> ESGOTADO : Consumo Restante (Estoque == 0)
+
+ESGOTADO --> DISPONIVEL : Reabastecimento Completo
+ESGOTADO --> [*] : Descontinuação do Insumo
+@enduml

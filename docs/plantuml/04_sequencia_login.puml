@@ -1,0 +1,62 @@
+@startuml 04_sequencia_login
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName Arial
+skinparam defaultFontSize 11
+skinparam sequenceArrowThickness 1.5
+skinparam sequenceArrowColor #8B0000
+skinparam sequenceLifeLineBorderColor #6C8EBF
+skinparam sequenceLifeLineBackgroundColor #DAE8FC
+skinparam sequenceParticipantBackgroundColor #DAE8FC
+skinparam sequenceParticipantBorderColor #6C8EBF
+skinparam sequenceParticipantFontColor #1A1A1A
+skinparam sequenceGroupBorderColor #6C8EBF
+skinparam sequenceGroupBackgroundColor #EEF4FF
+skinparam sequenceGroupFontColor #1A1A1A
+skinparam noteBorderColor #6C8EBF
+skinparam noteBackgroundColor #EEF4FF
+skinparam actorBackgroundColor #FFFFFF
+skinparam actorBorderColor #1A1A1A
+
+title G-Agro — Fluxo de Autenticação (Login com JWT)
+
+actor "Produtor\n(Usuário)" as USER
+participant "Front-end\n(React)" as FE
+participant "AuthController" as AC
+participant "AuthService" as AS
+participant "UsuarioRepository" as UR
+participant "PasswordEncoder\n(BCrypt)" as PE
+participant "JwtTokenProvider" as JWT
+database "PostgreSQL" as DB
+
+USER -> FE : preenche e-mail e senha
+FE -> AC : POST /api/v1/auth/login\n{ email, senha }
+AC -> AS : autenticar(credenciais)
+AS -> UR : findByEmail(email)
+UR -> DB : SELECT * FROM usuario\nWHERE email = ?
+DB --> UR : registro do usuário
+UR --> AS : Usuario
+
+alt [Usuário não encontrado ou inativo]
+  AS --> AC : lança CredenciaisInvalidasException
+  AC --> FE : 401 Unauthorized
+  FE --> USER : "E-mail ou senha inválidos"
+end
+
+AS -> PE : matches(senha, senhaHash)
+PE --> AS : true / false
+
+alt [Senha incorreta]
+  AS --> AC : lança CredenciaisInvalidasException
+  AC --> FE : 401 Unauthorized
+  FE --> USER : "E-mail ou senha inválidos"
+end
+
+AS -> JWT : gerarToken(usuario)
+JWT --> AS : accessToken + refreshToken
+
+AS --> AC : TokenResponse
+AC --> FE : 200 OK\n{ accessToken, refreshToken, papel }
+FE -> FE : armazena token\n(memória/HttpOnly cookie)
+FE --> USER : redireciona ao painel
+
+@enduml

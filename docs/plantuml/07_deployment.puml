@@ -1,0 +1,62 @@
+@startuml 07_deployment
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName Arial
+skinparam defaultFontSize 11
+skinparam ArrowColor #8B0000
+skinparam ArrowThickness 1.5
+skinparam nodeBackgroundColor #DAE8FC
+skinparam nodeBorderColor #6C8EBF
+skinparam nodeFontColor #1A1A1A
+skinparam componentBackgroundColor #DAE8FC
+skinparam componentBorderColor #6C8EBF
+skinparam componentFontColor #1A1A1A
+skinparam databaseBackgroundColor #FFE6CC
+skinparam databaseBorderColor #D6B656
+skinparam cloudBackgroundColor #EEF4FF
+skinparam cloudBorderColor #6C8EBF
+skinparam artifactBackgroundColor #DAE8FC
+skinparam artifactBorderColor #6C8EBF
+
+title G-Agro — Diagrama de Implantação (Deploy em Produção)
+
+node "Dispositivo do Usuário" {
+  component "Navegador Web\n(SPA React)" as BROWSER
+  component "App Mobile\n(React Native)" as MOBILE
+}
+
+node "GitHub Actions (CI/CD)" {
+  component "Pipeline build + testes\n+ deploy" as PIPELINE
+}
+
+cloud "Vercel (Edge/CDN)" {
+  artifact "Build estático\n(/dist)" as DIST
+}
+
+node "AWS" {
+  node "ECS / EC2" {
+    component "Container Docker\nSpring Boot (JAR)\nporta 8080" as SPRINGBOOT
+  }
+  database "RDS PostgreSQL 16" as RDS
+  node "S3" {
+    artifact "Uploads /\nRelatórios PDF" as S3FILES
+  }
+}
+
+cloud "Serviços de Terceiros" {
+  component "Stripe\n(Pagamentos)" as STRIPE
+  component "SendGrid\n(E-mail)" as SENDGRID
+  component "INMET API\n(Clima)" as INMET
+}
+
+BROWSER --> DIST : HTTPS
+MOBILE --> SPRINGBOOT : REST/JSON (HTTPS)
+DIST --> SPRINGBOOT : REST/JSON (HTTPS)
+PIPELINE ..> DIST : deploy front-end
+PIPELINE ..> SPRINGBOOT : deploy back-end\n(imagem Docker)
+SPRINGBOOT --> RDS : JDBC (porta 5432)
+SPRINGBOOT --> S3FILES : SDK AWS
+SPRINGBOOT --> STRIPE : API externa
+SPRINGBOOT --> SENDGRID : API externa
+SPRINGBOOT --> INMET : API externa
+
+@enduml

@@ -1,0 +1,21 @@
+@startuml
+title G-Agro — Diagrama de Comunicação (UC-12 Alerta Climático)
+
+skinparam ObjectBackgroundColor #FFFFFF
+skinparam ObjectBorderColor #2C3E50
+skinparam ArrowColor #E74C3C
+
+object "<u>climaService:ClimaService</u>" as climaSvc
+object "<u>:INMET_API</u>" as inmet
+object "<u>alertaRepository:AlertaRepository</u>" as alertaRepo
+object "<u>notificacaoService:NotificacaoService</u>" as notifSvc
+object "<u>:SendGridAPI</u>" as sendgrid
+object "<u>:Produtor</u>" as actor
+
+climaSvc -> inmet : 1: GET /previsao/{lat}/{lon}
+climaSvc -> climaSvc : 2: avaliarRiscoMeteorologico()
+climaSvc -> alertaRepo : 3: INSERT alerta_clima (grau_risco=ALTO)
+climaSvc -> notifSvc : 4: enviarAlerta(fazenda, risco)
+notifSvc -> sendgrid : 5: enviarEmailAlerta()
+sendgrid -> actor : 6: push + e-mail "Alerta Climático"
+@enduml

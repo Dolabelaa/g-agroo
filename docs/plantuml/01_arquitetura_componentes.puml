@@ -1,0 +1,87 @@
+@startuml 01_arquitetura_componentes
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam ArrowColor #8B0000
+skinparam ArrowThickness 1.5
+skinparam componentStyle rectangle
+
+skinparam component {
+  BackgroundColor #DAE8FC
+  BorderColor #6C8EBF
+  FontColor #1A1A1A
+}
+skinparam rectangle {
+  BackgroundColor #DAE8FC
+  BorderColor #6C8EBF
+  FontColor #1A1A1A
+  RoundCorner 4
+}
+skinparam database {
+  BackgroundColor #FFE6CC
+  BorderColor #D6B656
+  FontColor #1A1A1A
+}
+skinparam cloud {
+  BackgroundColor #FFF9C4
+  BorderColor #D6B656
+}
+skinparam actor {
+  BackgroundColor #FFFFFF
+  BorderColor #1A1A1A
+}
+
+title G-Agro — Arquitetura de Componentes (Camadas)
+
+actor "Usuário" as USER
+
+rectangle "Front-end (SPA)" {
+  component "React + Vite + TypeScript" as REACT
+  component "Camada de Serviços HTTP\n(Axios + React Query)" as HTTP_SVC
+  REACT --> HTTP_SVC
+}
+
+rectangle "Back-end — Spring Boot (API REST)" {
+
+  rectangle "Configuração" {
+    component "Spring Security" as SEC
+    component "Tratamento de Exceções" as EXC
+    component "Migrações Flyway" as FLY
+  }
+
+  rectangle "Camada de Apresentação" {
+    component "Filtro de Segurança JWT" as JWT
+    component "Controllers REST" as CTRL
+    JWT --> CTRL
+  }
+
+  rectangle "Camada de Aplicação" {
+    component "Services\n(Regras de Negócio)" as SVC
+    component "DTOs + Mappers" as DTO
+    CTRL --> SVC
+    SVC --> DTO
+  }
+
+  rectangle "Camada de Persistência" {
+    component "Repositories\n(Spring Data JPA)" as REPO
+    component "Entidades / Hibernate" as ENT
+    SVC --> REPO
+    REPO --> ENT
+  }
+
+  SEC --> JWT
+}
+
+cloud "Gateway de Pagamento\n(Stripe)" as STRIPE
+cloud "Serviço de E-mail\n(SendGrid)" as EMAIL
+
+database "PostgreSQL 16" as DB
+
+USER --> REACT : HTTPS
+HTTP_SVC --> JWT : REST/JSON (HTTPS)
+SVC --> STRIPE : API externa
+SVC --> EMAIL : API externa
+ENT --> DB : JDBC
+FLY --> DB : DDL / Migrations
+
+@enduml

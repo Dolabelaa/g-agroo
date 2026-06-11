@@ -1,0 +1,143 @@
+@startuml 03_modelo_dados_der
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName Arial
+skinparam defaultFontSize 11
+skinparam entityBackgroundColor #DAE8FC
+skinparam entityBorderColor #6C8EBF
+skinparam entityHeaderBackgroundColor #6C8EBF
+skinparam entityFontColor #FFFFFF
+skinparam entityAttributeFontColor #1A1A1A
+skinparam ArrowColor #8B0000
+skinparam ArrowThickness 1.5
+skinparam linetype ortho
+
+title G-Agro — Modelo de Dados (PostgreSQL)
+
+entity "usuario" as U {
+  * id : BIGSERIAL <<PK>>
+  --
+  * nome : VARCHAR(150)
+  * email : VARCHAR(200) <<UNIQUE>>
+  * senha_hash : VARCHAR(255)
+  * papel : VARCHAR(20)
+  telefone : VARCHAR(20)
+  ativo : BOOLEAN
+  criado_em : TIMESTAMP
+}
+
+entity "fazenda" as F {
+  * id : BIGSERIAL <<PK>>
+  --
+  * usuario_id : BIGINT <<FK>>
+  * nome : VARCHAR(200)
+  localizacao : TEXT
+  area_total_ha : DECIMAL(10,2)
+  latitude : DECIMAL(10,7)
+  longitude : DECIMAL(10,7)
+  documentacao_car : VARCHAR(100)
+  ativa : BOOLEAN
+}
+
+entity "talhao" as T {
+  * id : BIGSERIAL <<PK>>
+  --
+  * fazenda_id : BIGINT <<FK>>
+  * nome : VARCHAR(100)
+  area_ha : DECIMAL(8,2)
+  tipo_solo : VARCHAR(50)
+  status : VARCHAR(30)
+}
+
+entity "cultura" as CU {
+  * id : BIGSERIAL <<PK>>
+  --
+  * nome : VARCHAR(100)
+  variedade : VARCHAR(100)
+  ciclo_medio_dias : INT
+  temp_ideal_min : DECIMAL(4,1)
+  temp_ideal_max : DECIMAL(4,1)
+  pluviosidade_ideal : DECIMAL(6,1)
+}
+
+entity "plantio_safra" as PS {
+  * id : BIGSERIAL <<PK>>
+  --
+  * talhao_id : BIGINT <<FK>>
+  * cultura_id : BIGINT <<FK>>
+  data_plantio : DATE
+  data_colheita_prevista : DATE
+  data_colheita_real : DATE
+  qtd_semeada_kg : DECIMAL(10,2)
+  qtd_colhida_kg : DECIMAL(10,2)
+  status_safra : VARCHAR(30)
+}
+
+entity "monitoramento_solo" as MS {
+  * id : BIGSERIAL <<PK>>
+  --
+  * talhao_id : BIGINT <<FK>>
+  data_analise : DATE
+  ph : DECIMAL(4,2)
+  nitrogenio_ppm : DECIMAL(6,2)
+  fosforo_ppm : DECIMAL(6,2)
+  potassio_ppm : DECIMAL(6,2)
+  materia_organica_pct : DECIMAL(5,2)
+}
+
+entity "insumo" as I {
+  * id : BIGSERIAL <<PK>>
+  --
+  * fazenda_id : BIGINT <<FK>>
+  * nome : VARCHAR(150)
+  tipo : VARCHAR(50)
+  unidade_medida : VARCHAR(20)
+  estoque_atual : DECIMAL(10,2)
+  estoque_minimo : DECIMAL(10,2)
+  preco_unitario : DECIMAL(10,2)
+}
+
+entity "aplicacao_insumo" as AI {
+  * id : BIGSERIAL <<PK>>
+  --
+  * plantio_id : BIGINT <<FK>>
+  * insumo_id : BIGINT <<FK>>
+  data_aplicacao : DATE
+  quantidade : DECIMAL(10,2)
+  metodo_aplicacao : VARCHAR(80)
+  responsavel : VARCHAR(150)
+}
+
+entity "alerta_clima" as AC {
+  * id : BIGSERIAL <<PK>>
+  --
+  * fazenda_id : BIGINT <<FK>>
+  tipo_alerta : VARCHAR(50)
+  descricao : TEXT
+  data_hora : TIMESTAMP
+  grau_risco : VARCHAR(20)
+  notificado : BOOLEAN
+}
+
+entity "relatorio" as R {
+  * id : BIGSERIAL <<PK>>
+  --
+  * usuario_id : BIGINT <<FK>>
+  titulo : VARCHAR(200)
+  tipo : VARCHAR(50)
+  data_geracao : TIMESTAMP
+  conteudo_json : JSONB
+  arquivo_url : TEXT
+}
+
+U ||--o{ F : "usuario_id"
+F ||--o{ T : "fazenda_id"
+T ||--o{ PS : "talhao_id"
+CU ||--o{ PS : "cultura_id"
+T ||--o{ MS : "talhao_id"
+F ||--o{ I : "fazenda_id"
+PS ||--o{ AI : "plantio_id"
+I ||--o{ AI : "insumo_id"
+F ||--o{ AC : "fazenda_id"
+U ||--o{ R : "usuario_id"
+
+@enduml
